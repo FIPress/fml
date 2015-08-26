@@ -1,7 +1,7 @@
-package fipml
+package fml
 
 import (
-	. "fiputil"
+	. "github.com/fipress/fiputil"
 	"strings"
 	"unicode"
 )
@@ -30,7 +30,7 @@ func skipRest(input []byte) (skip int) {
 		} else if IsSpace(input[i]) {
 			i++
 		} else if IsLineEnd(input[i]) {
-			return i+1
+			return i + 1
 		} else {
 			return i
 		}
@@ -41,17 +41,18 @@ func skipRest(input []byte) (skip int) {
 func skipComments(input []byte) int {
 	return SkipUntilFunc(input, IsLineEnd, true)
 }
+
 //A node end by blank lines.
 //A blank line means it contains only spaces or comments
 func isBlankLine(input []byte) (bool, int) {
-	i:=0
-	for ;i < len(input); i++ {
+	i := 0
+	for ; i < len(input); i++ {
 		switch input[i] {
 		case '\n', '\r', '\f':
 			return true, i + 1
 		case ' ', '\t':
 		case '#':
-			return true, i+skipComments(input[i:])
+			return true, i + skipComments(input[i:])
 		default:
 			return false, 0
 		}
@@ -61,7 +62,7 @@ func isBlankLine(input []byte) (bool, int) {
 
 //A block end by blank lines, or next line starts a list block
 func isKeyValueBlockEnd(input []byte) (bool, int) {
-	isList,_ := isListPrefix(input)
+	isList, _ := isListPrefix(input)
 	if isList {
 		return true, 0
 	}
@@ -70,14 +71,14 @@ func isKeyValueBlockEnd(input []byte) (bool, int) {
 }
 
 func isBlockEnd(input []byte) (bool, int) {
-	i:=0
-	for ;i < len(input); i++ {
+	i := 0
+	for ; i < len(input); i++ {
 		switch input[i] {
 		case '\n', '\r', '\f':
 			return true, i + 1
 		case ' ', '\t':
 		case '#':
-			return true, i+skipComments(input[i:])
+			return true, i + skipComments(input[i:])
 		default:
 			return false, 0
 		}
@@ -85,22 +86,22 @@ func isBlockEnd(input []byte) (bool, int) {
 	return true, i
 }
 
-func isListPrefix(input []byte) (bool,int) {
+func isListPrefix(input []byte) (bool, int) {
 	idx := SkipSpace(input)
-	if idx + 2 < len(input) &&
+	if idx+2 < len(input) &&
 		input[idx] == '-' &&
-			IsSpace(input[idx+1]) {
-		return true,idx+2
+		IsSpace(input[idx+1]) {
+		return true, idx + 2
 	}
-	return false,0
+	return false, 0
 }
 
 //value end at line end or comment
 func skipUntilValueEnd(input []byte) int {
-	i:=0
-	for ;i<len(input);i++ {
+	i := 0
+	for ; i < len(input); i++ {
 		if input[i] == '#' && IsSpace(input[i-1]) {
-			return i-1
+			return i - 1
 		}
 		if IsLineEnd(input[i]) {
 			return i
@@ -110,13 +111,12 @@ func skipUntilValueEnd(input []byte) int {
 }
 
 //get value in string
-func getRawValue(input []byte) (string,int) {
+func getRawValue(input []byte) (string, int) {
 	start := SkipSpace(input)
 	end := start + skipUntilValueEnd(input[start:])
 	val := string(input[start:end])
-	val = strings.TrimRightFunc(val,unicode.IsSpace)
+	val = strings.TrimRightFunc(val, unicode.IsSpace)
 
 	idx := end + skipRest(input[end:])
 	return val, idx
 }
-

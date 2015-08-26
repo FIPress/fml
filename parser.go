@@ -1,10 +1,10 @@
-package fipml
+package fml
 
 import "io/ioutil"
 
 import (
-	"log"
 	"errors"
+	"log"
 )
 
 func Load(path string) (doc *FML, err error) {
@@ -23,14 +23,14 @@ func ParseString(input string) (doc *FML, err error) {
 
 func Parse(input []byte) (doc *FML, err error) {
 	defer func() {
-		if r:=recover();r!=nil {
+		if r := recover(); r != nil {
 			log.Println(r)
 			err = errors.New("parse fipml failed")
 		}
 	}()
 
 	doc = NewFml()
-	idx,delta := 0,0
+	idx, delta := 0, 0
 
 	for idx < len(input) {
 		idx += skipLeft(input[idx:])
@@ -39,10 +39,10 @@ func Parse(input []byte) (doc *FML, err error) {
 		}
 
 		if input[idx] == '[' {
-			delta = extractNode(input[idx:],doc)
+			delta = extractNode(input[idx:], doc)
 		} else {
 			//delta = extractBlock(input[idx:],doc)
-			delta = extractKeyValue(input[idx:],doc)
+			delta = extractKeyValue(input[idx:], doc)
 		}
 		idx += delta
 		//idx += extractBlock(input[idx:],doc)

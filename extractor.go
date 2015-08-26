@@ -1,47 +1,48 @@
-package fipml
+package fml
 
 import (
-	. "fiputil"
+	. "github.com/fipress/fiputil"
 	"strings"
 	"time"
-//	"log"
+	//	"log"
+	"bytes"
 	"log"
 )
 
 const (
-	invalidNodeName = "invalid node name"
-	invalidKeyName = "invalid key name"
-	duplicateNode = "duplicate node: "
-	duplicateKey = "duplicate key: "
-	unsupportedValue = "unsurported value for key: "
+	invalidNodeName        = "invalid node name"
+	invalidKeyName         = "invalid key name"
+	duplicateNode          = "duplicate node: "
+	duplicateKey           = "duplicate key: "
+	unsupportedValue       = "unsurported value for key: "
 	multipleLineClosingErr = "multiple line literal not close properly"
-	literalClosingErr = "literal not close properly"
-	invalidArray = "invalid aray"
+	literalClosingErr      = "literal not close properly"
+	invalidArray           = "invalid aray"
 )
 
 var (
-	multipleLiteral = []byte {'`','`','`'}
+	multipleLiteral = []byte{'`', '`', '`'}
 )
 
 func extractNode(input []byte, doc *FML) (idx int) {
-	prefixes,name, idx := extractNodeName(input)
-	pDoc := getPNodeByName(prefixes,doc)
+	prefixes, name, idx := extractNodeName(input)
+	pDoc := getPNodeByName(prefixes, doc)
 	if pDoc.dict[name] != nil {
-		panic(duplicateNode+name)
+		panic(duplicateNode + name)
 	}
 
 	//array, err :=doc.GetTableArray(name)
-	isList,delta := isListPrefix(input[idx:])
+	isList, delta := isListPrefix(input[idx:])
 	if isList {
-		list := make([]*FML,0)
+		list := make([]*FML, 0)
 		idx += delta
 		for idx < len(input) {
 			subDoc := NewFml()
 			//log.Println("extract node list:",string(input[idx:]))
-			idx += extractKeyValueBlock(input[idx:],subDoc)
+			idx += extractKeyValueBlock(input[idx:], subDoc)
 			//log.Println("subdoc,name:",subDoc.GetString("name",""))
-			list = append(list,subDoc)
-			goon,delta := isListPrefix(input[idx:])
+			list = append(list, subDoc)
+			goon, delta := isListPrefix(input[idx:])
 			idx += delta
 			//log.Println("extract node list,is end:",string(input[idx:]))
 			//log.Printf("extract node list,idx=%d,c=%c,goon=%v,delta=%d\n",idx,input[idx],goon,delta)
@@ -55,7 +56,7 @@ func extractNode(input []byte, doc *FML) (idx int) {
 		}
 	} else {
 		subDoc := NewFml()
-		idx += extractKeyValueBlock(input[idx:],subDoc)
+		idx += extractKeyValueBlock(input[idx:], subDoc)
 		pDoc.dict[name] = subDoc
 	}
 	return
@@ -69,26 +70,26 @@ func getPNodeByName(names []string, doc *FML) *FML {
 		return doc
 	}*/
 	pNode := doc
-	for i:=0;i<len(names);i++ {
+	for i := 0; i < len(names); i++ {
 		if pNode == nil {
 			return nil
 		}
-		switch p := pNode.dict[names[i]].(type){
+		switch p := pNode.dict[names[i]].(type) {
 		case *FML:
 			pNode = p
 		case nil:
 			pNode = NewFml()
 		default:
-			panic(duplicateKey+names[i])
+			panic(duplicateKey + names[i])
 		}
 	}
 	return pNode
 }
 
-func extractKeyValueBlock(input []byte,doc *FML) (idx int) {
+func extractKeyValueBlock(input []byte, doc *FML) (idx int) {
 	for idx < len(input) {
 		idx += extractKeyValue(input[idx:], doc)
-		end,delta := isKeyValueBlockEnd(input[idx:])
+		end, delta := isKeyValueBlockEnd(input[idx:])
 		if end {
 			idx += delta
 			return
@@ -131,7 +132,7 @@ func extractKeyValue(input []byte, doc *FML) (idx int) {
 	idx += delta
 
 	if doc.dict[key] != nil {
-		panic(duplicateKey+key)
+		panic(duplicateKey + key)
 	}
 
 	idx += skipRest(input[idx:])
@@ -141,7 +142,7 @@ func extractKeyValue(input []byte, doc *FML) (idx int) {
 	idx += delta
 	//log.Printf("c2=%c,c2+1=%c\n",input[idx],input[idx+1])
 	if val == nil {
-		panic(unsupportedValue+key)
+		panic(unsupportedValue + key)
 	}
 
 	doc.dict[key] = val
@@ -153,10 +154,10 @@ func extractKeyValue(input []byte, doc *FML) (idx int) {
 }
 
 func extractKey(input []byte) (key string, idx int) {
-	delta,found := SkipUntilOrStopAtLineEnd(input,':')
+	delta, found := SkipUntilOrStopAtLineEnd(input, ':')
 	if !found || delta == 0 {
-		log.Println("extract key:",string(input))
-		log.Println("found:",found,"delta:",delta)
+		log.Println("extract key:", string(input))
+		log.Println("found:", found, "delta:", delta)
 		panic(invalidKeyName)
 	}
 	idx = delta
@@ -170,19 +171,19 @@ func extractKey(input []byte) (key string, idx int) {
 func extractValue(input []byte) (val interface{}, idx int) {
 	switch input[0] {
 	case '`':
-		val,idx = extractLiteral(input)
+		val, idx = extractLiteral(input)
 	case '[':
 		val, idx = extractArray(input)
 	default:
 		var raw string
-		raw,idx = getRawValue(input)
+		raw, idx = getRawValue(input)
 		val = eval(raw)
 	}
 	return
 }
 
-func extractNodeName(input []byte) (prefixes []string, name string,idx int) {
-	delta,found := SkipUntilOrStopAtLineEnd(input[1:],']')
+func extractNodeName(input []byte) (prefixes []string, name string, idx int) {
+	delta, found := SkipUntilOrStopAtLineEnd(input[1:], ']')
 	if !found || delta == 0 {
 		panic(invalidNodeName)
 	}
@@ -190,7 +191,7 @@ func extractNodeName(input []byte) (prefixes []string, name string,idx int) {
 	str := string(input[1:idx])
 	idx++ //plus ']'
 	str = strings.TrimSpace(str)
-	names := strings.Split(str,".")
+	names := strings.Split(str, ".")
 	l := len(names)
 	if l == 0 {
 		return
@@ -204,9 +205,9 @@ func extractNodeName(input []byte) (prefixes []string, name string,idx int) {
 	return
 }
 
-func extractLiteral(input []byte) (val string,idx int) {
-	if len(input)>6 && SliceEquals(input[:3],multipleLiteral) {
-		delta,found := SkipUntilArray(input[3:],multipleLiteral)
+func extractLiteral(input []byte) (val string, idx int) {
+	if len(input) > 6 && bytes.Compare(input[:3], multipleLiteral) == 0 {
+		delta, found := SkipUntilArray(input[3:], multipleLiteral)
 		if !found {
 			panic(multipleLineClosingErr)
 		}
@@ -214,7 +215,7 @@ func extractLiteral(input []byte) (val string,idx int) {
 		val = string(input[3:end])
 		idx = end + 3
 	} else {
-		delta,found := SkipUntilOrStopAtLineEnd(input[1:],'`')
+		delta, found := SkipUntilOrStopAtLineEnd(input[1:], '`')
 		if !found {
 			panic(literalClosingErr)
 		}
@@ -227,7 +228,7 @@ func extractLiteral(input []byte) (val string,idx int) {
 
 func extractArray(input []byte) (val interface{}, idx int) {
 	//i := 1 + skipLeft(input[1:])
-	items,idx := getArrayItems(input)
+	items, idx := getArrayItems(input)
 	length := len(items)
 	if length == 0 {
 		return
@@ -247,7 +248,7 @@ func extractArray(input []byte) (val interface{}, idx int) {
 		arr := make([]int, length, length)
 		arr[0] = v0
 		for i := 1; i < length; i++ {
-			vi,ok := evalInt(items[i])
+			vi, ok := evalInt(items[i])
 			if !ok {
 				panic(invalidArray)
 			}
@@ -257,7 +258,7 @@ func extractArray(input []byte) (val interface{}, idx int) {
 	case float64:
 		arr := make([]float64, length, length)
 		for i := 1; i < length; i++ {
-			vi,ok := evalFloat(items[i])
+			vi, ok := evalFloat(items[i])
 			if !ok {
 				panic(invalidArray)
 			}
@@ -268,7 +269,7 @@ func extractArray(input []byte) (val interface{}, idx int) {
 		arr := make([]bool, length, length)
 		arr[0] = v0
 		for i := 1; i < length; i++ {
-			vi,ok := evalBool(items[i])
+			vi, ok := evalBool(items[i])
 			if !ok {
 				panic(invalidArray)
 			}
@@ -279,7 +280,7 @@ func extractArray(input []byte) (val interface{}, idx int) {
 		arr := make([]time.Time, length, length)
 		arr[0] = v0
 		for i := 1; i < length; i++ {
-			vi,ok := evalDatetime(items[i])
+			vi, ok := evalDatetime(items[i])
 			if !ok {
 				panic(invalidArray)
 			}
@@ -290,17 +291,17 @@ func extractArray(input []byte) (val interface{}, idx int) {
 	return
 }
 
-func getArrayItems(input []byte) (items []string,idx int) {
+func getArrayItems(input []byte) (items []string, idx int) {
 	from := -1
 	add := func(to int) {
 		val := string(input[from:to])
 		val = strings.TrimSpace(val)
-		items = append(items,val)
+		items = append(items, val)
 	}
 	//log.Printf("getArrayItems,c0=%c\n",input[0])
-	for i:=1; i<len(input);i++ {
+	for i := 1; i < len(input); i++ {
 		switch input[i] {
-		case ' ','\t','\n','\r','\f':
+		case ' ', '\t', '\n', '\r', '\f':
 			//do nothing
 		case ',':
 			if from == -1 {
@@ -312,7 +313,7 @@ func getArrayItems(input []byte) (items []string,idx int) {
 			if from != -1 {
 				add(i)
 			}
-			return items,i+1
+			return items, i + 1
 		default:
 			if from == -1 {
 				from = i
@@ -321,4 +322,3 @@ func getArrayItems(input []byte) (items []string,idx int) {
 	}
 	panic(invalidArray)
 }
-

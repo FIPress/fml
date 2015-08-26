@@ -1,14 +1,14 @@
-package fipml
+package fml
 
 import (
-	"errors"
-	"strings"
-	"time"
 	"bufio"
-	"strconv"
-	"reflect"
+	"errors"
 	"fmt"
 	"os"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
 )
 
 var (
@@ -299,7 +299,7 @@ func (t *FML) GetNodeList(key string) (list []*FML, err error) {
 	return
 }
 
-func (t *FML) getRawVal(key string) (val interface {}, err error) {
+func (t *FML) getRawVal(key string) (val interface{}, err error) {
 	fKey, doc, err := getFinalKeyAndNode(key, t)
 	//fmt.Println("getRawVal:fkey:",fKey,"doc:",doc,",err:",err)
 	if err != nil {
@@ -311,7 +311,7 @@ func (t *FML) getRawVal(key string) (val interface {}, err error) {
 		return
 	}
 
-	val,ok := doc.dict[fKey]
+	val, ok := doc.dict[fKey]
 	if !ok {
 		err = errValueNotFound
 	}
@@ -381,16 +381,16 @@ func (t toml) getStruct(key string, st interface {}) ( err error) {
 }
 */
 
-func (t *FML) SetValue(key string, v interface {}) {
+func (t *FML) SetValue(key string, v interface{}) {
 	t.dict[key] = v
 }
 
 func (t *FML) RemoveItem(key string) {
-	delete(t.dict,key)
+	delete(t.dict, key)
 }
 
-func (t *FML) ValueSet() (values []interface {}) {
-	values = make([]interface {},len(t.dict))
+func (t *FML) ValueSet() (values []interface{}) {
+	values = make([]interface{}, len(t.dict))
 
 	idx := 0
 	for _, v := range t.dict {
@@ -401,7 +401,7 @@ func (t *FML) ValueSet() (values []interface {}) {
 }
 
 func (t *FML) KeySet() (keys []string) {
-	keys = make([]string,len(t.dict))
+	keys = make([]string, len(t.dict))
 
 	idx := 0
 	for k := range t.dict {
@@ -416,7 +416,7 @@ func (t *Toml) SetTable(key string, v *Toml) {
 
 }*/
 
-func (doc *FML) WriteToFile( path string) (err error) {
+func (doc *FML) WriteToFile(path string) (err error) {
 	file, err := os.Create(path)
 	defer file.Close()
 
@@ -431,11 +431,11 @@ func (doc *FML) WriteToFile( path string) (err error) {
 }
 
 func (f *FML) WriteTo(writer *bufio.Writer) {
-	f.writeTo("",writer)
+	f.writeTo("", writer)
 }
 
-func (f *FML) writeTo(parentKey string,writer *bufio.Writer) {
-	for key,val := range f.dict {
+func (f *FML) writeTo(parentKey string, writer *bufio.Writer) {
+	for key, val := range f.dict {
 		fullKey := key
 		if len(parentKey) != 0 {
 			fullKey = parentKey + "." + key
@@ -443,16 +443,16 @@ func (f *FML) writeTo(parentKey string,writer *bufio.Writer) {
 		switch v := val.(type) {
 		case []*FML:
 			defer func() {
-				writeNodeName(fullKey,writer)
-				for i:=0;i<len(v);i++ {
-					writer.Write([]byte{'-',' '})
-					v[i].writeTo(fullKey,writer)
+				writeNodeName(fullKey, writer)
+				for i := 0; i < len(v); i++ {
+					writer.Write([]byte{'-', ' '})
+					v[i].writeTo(fullKey, writer)
 				}
 			}()
 		case *FML:
 			defer func() {
-				writeNodeName(fullKey,writer)
-				v.writeTo(fullKey,writer)
+				writeNodeName(fullKey, writer)
+				v.writeTo(fullKey, writer)
 			}()
 		default:
 			//log.Println("write",key)
@@ -465,7 +465,7 @@ func (f *FML) writeTo(parentKey string,writer *bufio.Writer) {
 	}
 }
 
-func writeNodeName(key string,writer *bufio.Writer) {
+func writeNodeName(key string, writer *bufio.Writer) {
 	if writer.Buffered() > 0 {
 		writer.WriteByte('\n')
 	}
@@ -475,10 +475,9 @@ func writeNodeName(key string,writer *bufio.Writer) {
 	writer.WriteByte('\n')
 }
 
-
 //func wrapSimpleVal(val interface {}) string {}
 
-func wrapVal(val interface {}) string {
+func wrapVal(val interface{}) string {
 	switch v := val.(type) {
 	case string:
 		return v
@@ -487,13 +486,13 @@ func wrapVal(val interface {}) string {
 	case int:
 		return strconv.Itoa(v)
 	case float64:
-		return strconv.FormatFloat(v,'f',-1,64)
+		return strconv.FormatFloat(v, 'f', -1, 64)
 	case bool:
 		return strconv.FormatBool(v)
 	case []time.Time:
 		s := "["
 		l := len(v)
-		for i:=0;i < l;i++ {
+		for i := 0; i < l; i++ {
 			if i > 0 {
 				s += ","
 			}
@@ -504,7 +503,7 @@ func wrapVal(val interface {}) string {
 	case []int:
 		s := "["
 		l := len(v)
-		for i:=0;i < l;i++ {
+		for i := 0; i < l; i++ {
 			if i > 0 {
 				s += ","
 			}
@@ -515,18 +514,18 @@ func wrapVal(val interface {}) string {
 	case []float64:
 		s := "["
 		l := len(v)
-		for i:=0;i < l;i++ {
+		for i := 0; i < l; i++ {
 			if i > 0 {
 				s += ","
 			}
-			s += strconv.FormatFloat(v[i],'f',-1,64)
+			s += strconv.FormatFloat(v[i], 'f', -1, 64)
 		}
 		s += "]"
 		return s
 	case []bool:
 		s := "["
 		l := len(v)
-		for i:=0;i < l;i++ {
+		for i := 0; i < l; i++ {
 			if i > 0 {
 				s += ","
 			}
@@ -537,7 +536,7 @@ func wrapVal(val interface {}) string {
 	case []string:
 		s := "["
 		l := len(v)
-		for i:=0;i < l;i++ {
+		for i := 0; i < l; i++ {
 			if i > 0 {
 				s += ","
 			}
@@ -560,19 +559,19 @@ func IterateFimlDoc(doc *FML) {
 		case nil:
 			fmt.Println("empty value of: ", key)
 		case string:
-			fmt.Println(key, "=", val,"(string)")
+			fmt.Println(key, "=", val, "(string)")
 		case *FML:
 			fmt.Println("Node:", key)
 			IterateFimlDoc(val)
 		case []*FML:
-			fmt.Println("List of nodes:", key,",len:",len(val))
+			fmt.Println("List of nodes:", key, ",len:", len(val))
 
 			for i, v := range val {
 				fmt.Println("List ", i)
 				IterateFimlDoc(v)
 			}
 		default:
-			fmt.Println(key, "=", val,"(", reflect.TypeOf(val),")")
+			fmt.Println(key, "=", val, "(", reflect.TypeOf(val), ")")
 		}
 	}
 }

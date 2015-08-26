@@ -1,14 +1,13 @@
-package fipml
+package fml
 
 import (
 	"testing"
-	"fiputil"
 )
 
 func TestParse(t *testing.T) {
-/*
+	/*
 
-*/
+	*/
 
 	input := `title: Scala Basic
 author: Chunni Deng
@@ -55,9 +54,9 @@ pattern: %date [%level] <%file> %msg
 - code: en
   name: Scala Basic
 `
-	doc,err := ParseString(input)
+	doc, err := ParseString(input)
 	if err != nil {
-		t.Error("Should be ok, err",err)
+		t.Error("Should be ok, err", err)
 	}
 	IterateFimlDoc(doc)
 }
