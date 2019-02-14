@@ -7,7 +7,7 @@ import (
 func TestParse(t *testing.T) {
 	/*
 
-	*/
+	 */
 
 	input := `title: Scala Basic
 author: Chunni Deng
@@ -53,6 +53,12 @@ pattern: %date [%level] <%file> %msg
   name: Scala基础教程
 - code: en
   name: Scala Basic
+
+content1: [
+	"a",
+	"b",
+	"c"
+]
 `
 	doc, err := ParseString(input)
 	if err != nil {
