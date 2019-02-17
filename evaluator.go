@@ -77,7 +77,7 @@ func evalDatetime(raw string) (val time.Time, ok bool) {
 	} else if datetimeRFC3399R.MatchString(raw) {
 		val, err = time.Parse(time.RFC3339, raw)
 	} else {
-		return MinTime, false
+		return time.Time{}, false
 	}
 	return val, err == nil
 }
