@@ -21,7 +21,8 @@ const (
 )
 
 var (
-	multipleLiteral = []byte{'`', '`', '`'}
+	Delimiter       byte = '='
+	multipleLiteral      = []byte{'`', '`', '`'}
 )
 
 func extractNode(input []byte, doc *FML) (idx int) {
@@ -154,7 +155,7 @@ func extractKeyValue(input []byte, doc *FML) (idx int) {
 }
 
 func extractKey(input []byte) (key string, idx int) {
-	delta, found := SkipUntilOrStopAtLineEnd(input, ':')
+	delta, found := SkipUntilOrStopAtLineEnd(input, Delimiter)
 	if !found || delta == 0 {
 		log.Println("extract key:", string(input))
 		log.Println("found:", found, "delta:", delta)

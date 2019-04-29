@@ -12,175 +12,181 @@ import (
 )
 
 var (
-	errValueNotFound = errors.New("Value not found")
-	errTypeMismatch  = errors.New("Type mismatch")
-	errNoKey         = errors.New("No key name")
+	errValueNotFound = errors.New("value not found")
+	errTypeMismatch  = errors.New("type mismatch")
+	errNoKey         = errors.New("no key name")
 )
 
+// A FML represents a fml node
 type FML struct {
 	dict map[string]interface{}
 }
 
+// NewFml creates an empty node
 func NewFml() *FML {
 	return &FML{make(map[string]interface{})}
 }
 
-func (t *FML) GetStringEx(key string) (val string, err error) {
-	raw, err := t.getRawVal(key)
+// GetStringOrError gets a string value from the node.
+func (f *FML) GetStringOrError(key string) (val string, err error) {
+	raw, err := f.getRawVal(key)
 
-	switch v := raw.(type) {
-	case string:
-		val = v
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
+	return getString(raw)
 }
 
-func (t *FML) GetString(key string, dflt string) string {
-	raw, err := t.getRawVal(key)
+// GetString gets a string value from the node,
+// or return zero value of string, "", if the key does not exist or other error happens.
+func (f *FML) GetString(key string) (val string) {
+	return f.GetStringOrDefault(key, "")
+}
+
+// GetStringOrDefault gets a string value from the node,
+// or return defaultVal if the key does not exist or other error happens.
+func (f *FML) GetStringOrDefault(key string, defaultVal string) string {
+	raw, err := f.getRawVal(key)
 	if err != nil {
-		return dflt
+		return defaultVal
 	}
 
-	switch v := raw.(type) {
-	case string:
-		return v
-	case nil:
-		return dflt
-	default:
-		return wrapVal(v)
-	}
-}
-
-func (t *FML) GetBoolEx(key string) (val bool, err error) {
-	raw, err := t.getRawVal(key)
+	val, err := getString(raw)
 	if err != nil {
-		return
-	}
-
-	switch v := raw.(type) {
-	case bool:
-		val = v
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
-}
-
-func (t *FML) GetBool(key string, dflt bool) bool {
-	raw, err := t.getRawVal(key)
-	if err != nil {
-		return dflt
-	}
-
-	switch v := raw.(type) {
-	case bool:
-		return v
-	default:
-		return dflt
+		return defaultVal
+	} else {
+		return val
 	}
 }
 
-func (t *FML) GetIntEx(key string) (val int, err error) {
-	raw, err := t.getRawVal(key)
+// GetBoolOrError gets a bool value from the node.
+func (f *FML) GetBoolOrError(key string) (val bool, err error) {
+	raw, err := f.getRawVal(key)
 	if err != nil {
 		return
 	}
 
-	switch v := raw.(type) {
-	case int:
-		val = v
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
+	return getBool(raw)
 }
 
-func (t *FML) GetInt(key string, dflt int) int {
-	raw, err := t.getRawVal(key)
+// GetBoolOrZero gets a bool value from the node,
+// or return zero value of bool, false, if the key does not exist or other error happens.
+func (f *FML) GetBool(key string) (val bool) {
+	return f.GetBoolOrDefault(key, false)
+}
+
+// GetBoolOrDefault gets a bool value from the node,
+// or return defaultVal, if the key does not exist or other error happens.
+func (f *FML) GetBoolOrDefault(key string, defaultVal bool) bool {
+	raw, err := f.getRawVal(key)
 	if err != nil {
-		return dflt
+		return defaultVal
 	}
 
-	switch v := raw.(type) {
-	case int:
-		return v
-	default:
-		return dflt
-	}
-}
-
-func (t *FML) GetFloatEx(key string) (val float64, err error) {
-	raw, err := t.getRawVal(key)
+	val, err := getBool(raw)
 	if err != nil {
-		return
-	}
-
-	switch v := raw.(type) {
-	case float64:
-		val = v
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
-}
-
-func (t *FML) GetFloat(key string, dflt float64) float64 {
-	raw, err := t.getRawVal(key)
-	if err != nil {
-		return dflt
-	}
-
-	switch v := raw.(type) {
-	case float64:
-		return v
-	default:
-		return dflt
+		return defaultVal
+	} else {
+		return val
 	}
 }
 
-func (t *FML) GetDatetimeEx(key string) (val time.Time, err error) {
-	raw, err := t.getRawVal(key)
+// GetIntOrError gets a int value from the node.
+func (f *FML) GetIntOrError(key string) (val int, err error) {
+	raw, err := f.getRawVal(key)
 	if err != nil {
 		return
 	}
 
-	switch v := raw.(type) {
-	case time.Time:
-		val = v
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
+	return getInt(raw)
 }
 
-func (t *FML) GetDatetime(key string, dflt time.Time) time.Time {
-	raw, err := t.getRawVal(key)
+// GetIntOrZero gets a int value from the node,
+// or return zero value of int, 0, if the key does not exist or other error happens.
+func (f *FML) GetInt(key string) (val int) {
+	return f.GetIntOrDefault(key, 0)
+}
+
+// GetIntOrDefault gets a int value from the node,
+// or return defaultVal, if the key does not exist or other error happens.
+func (f *FML) GetIntOrDefault(key string, defaultVal int) int {
+	raw, err := f.getRawVal(key)
 	if err != nil {
-		return dflt
+		return defaultVal
 	}
 
-	switch v := raw.(type) {
-	case time.Time:
-		return v
-	default:
-		return dflt
+	val, err := getInt(raw)
+	if err != nil {
+		return defaultVal
+	} else {
+		return val
 	}
 }
 
-func (t *FML) GetArrayEx(key string) (array interface{}, err error) {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetFloatOrError gets a float value from the node.
+func (f *FML) GetFloatOrError(key string) (val float64, err error) {
+	raw, err := f.getRawVal(key)
+	if err != nil {
+		return
+	}
+
+	return getFloat(raw)
+}
+
+// GetFloat gets a float value from the node,
+// or return zero value of int, 0, if the key does not exist or other error happens.
+func (f *FML) GetFloat(key string) (val float64) {
+	return f.GetFloatOrDefault(key, 0)
+}
+
+// GetFloatOrDefault gets a float value from the node,
+// or return defaultVal, if the key does not exist or other error happens.
+func (f *FML) GetFloatOrDefault(key string, defaultVal float64) float64 {
+	raw, err := f.getRawVal(key)
+	if err != nil {
+		return defaultVal
+	}
+
+	val, err := getFloat(raw)
+	if err != nil {
+		return defaultVal
+	} else {
+		return val
+	}
+}
+
+// GetTimeOrError gets a time.Time value from the node.
+func (f *FML) GetTimeOrError(key string) (val time.Time, err error) {
+	raw, err := f.getRawVal(key)
+	if err != nil {
+		return
+	}
+
+	return getTime(raw)
+}
+
+// GetDatetime gets a time.Time value from the node,
+// or return zero value of Datetime, time.Time{}, if the key does not exist or other error happens.
+func (f *FML) GetDatetime(key string) (val time.Time) {
+	return f.GetDatetimeOrDefault(key, time.Time{})
+}
+
+// GetDatetimeOrDefault gets a time.Time value from the node,
+// or return defaultVal, if the key does not exist or other error happens.
+func (f *FML) GetDatetimeOrDefault(key string, defaultVal time.Time) time.Time {
+	raw, err := f.getRawVal(key)
+	if err != nil {
+		return defaultVal
+	}
+
+	val, err := getTime(raw)
+	if err != nil {
+		return defaultVal
+	} else {
+		return val
+	}
+}
+
+// GetArrayOrError gets an array from the node.
+func (f *FML) GetArrayOrError(key string) (array interface{}, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	switch arr := doc.dict[fKey].(type) {
 	case []string:
 		array = arr
@@ -200,79 +206,132 @@ func (t *FML) GetArrayEx(key string) (array interface{}, err error) {
 	return
 }
 
-func (t *FML) GetStringArray(key string) []string {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetStringArrayOrError gets an array of string from the node.
+func (f *FML) GetStringArrayOrError(key string) (arr []string, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
+	if err != nil {
+		return
+	}
+
+	return getStringArray(doc.dict[fKey])
+}
+
+// GetStringArray gets an array of string from the node.
+// It returns nil if the key does not exist or other error happens.
+func (f *FML) GetStringArray(key string) []string {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	if err != nil {
 		return nil
 	}
 
-	switch arr := doc.dict[fKey].(type) {
-	case []string:
-		return arr
-	default:
-		return nil
-	}
+	arr, _ := getStringArray(doc.dict[fKey])
+	return arr
 }
 
-func (t *FML) GetBoolArray(key string) []bool {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetBoolArrayOrError gets an array of bool from the node.
+func (f *FML) GetBoolArrayOrError(key string) (arr []bool, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
+	if err != nil {
+		return
+	}
+
+	return getBoolArray(doc.dict[fKey])
+}
+
+// GetBoolArray gets an array of bool from the node.
+// It returns nil if the key does not exist or other error happens.
+func (f *FML) GetBoolArray(key string) []bool {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	if err != nil {
 		return nil
 	}
 
-	switch arr := doc.dict[fKey].(type) {
-	case []bool:
-		return arr
-	default:
-		return nil
-	}
+	arr, _ := getBoolArray(doc.dict[fKey])
+	return arr
 }
 
-func (t *FML) GetIntArray(key string) []int {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetIntArrayOrError gets an array of int from the node.
+func (f *FML) GetIntArrayOrError(key string) (arr []int, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
+	if err != nil {
+		return
+	}
+
+	return getIntArray(doc.dict[fKey])
+}
+
+// GetIntArray gets an array of int from the node.
+// It returns nil if the key does not exist or other error happens.
+func (f *FML) GetIntArray(key string) []int {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	if err != nil {
 		return nil
 	}
 
-	switch arr := doc.dict[fKey].(type) {
-	case []int:
-		return arr
-	default:
-		return nil
-	}
+	arr, _ := getIntArray(doc.dict[fKey])
+	return arr
 }
 
-func (t *FML) GetFloatArray(key string) []float64 {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetFloatArrayOrError gets an array of float from the node.
+func (f *FML) GetFloatArrayOrError(key string) (arr []float64, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
+	if err != nil {
+		return
+	}
+
+	return getFloatArray(doc.dict[fKey])
+}
+
+// GetFloatArray gets an array of float from the node.
+// It returns nil if the key does not exist or other error happens.
+func (f *FML) GetFloatArray(key string) []float64 {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	if err != nil {
 		return nil
 	}
 
-	switch arr := doc.dict[fKey].(type) {
-	case []float64:
-		return arr
-	default:
-		return nil
-	}
+	arr, _ := getFloatArray(doc.dict[fKey])
+	return arr
 }
 
-func (t *FML) GetDatetimeArray(key string) []time.Time {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetDatetimeArray gets an array of time.Time from the node.
+func (f *FML) GetTimeArrayOrError(key string) (arr []time.Time, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
+	if err != nil {
+		//fmt.Println("key,err:",key,err)
+		return
+	}
+
+	return getTimeArray(doc.dict[fKey])
+}
+
+// GetDatetimeArray gets an array of time.Time from the node.
+// It returns nil if the key does not exist or other error happens.
+func (f *FML) GetTimeArray(key string) []time.Time {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	if err != nil {
 		//fmt.Println("key,err:",key,err)
 		return nil
 	}
 
-	switch arr := doc.dict[fKey].(type) {
-	case []time.Time:
-		return arr
-	default:
-		return nil
-	}
+	arr, _ := getTimeArray(doc.dict[fKey])
+	return arr
 }
 
-func (t *FML) GetNode(key string) (node *FML, err error) {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetStruct get a struct from the node
+func (f *FML) GetStruct(key string, v interface{}) (err error) {
+	//fKey, node, err := getFinalKeyAndNode(key, f)
+	node, err := f.GetNode(key)
+	if err != nil {
+		return
+	}
+
+	return getStruct(node, v)
+}
+
+// GetNode gets a sub-node from the node
+func (f *FML) GetNode(key string) (node *FML, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	switch v := doc.dict[fKey].(type) {
 	case *FML:
 		node = v
@@ -285,8 +344,9 @@ func (t *FML) GetNode(key string) (node *FML, err error) {
 	return
 }
 
-func (t *FML) GetNodeList(key string) (list []*FML, err error) {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+// GetNodeList gets a node list from the node
+func (f *FML) GetNodeList(key string) (list []*FML, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	switch v := doc.dict[fKey].(type) {
 	case []*FML:
 		list = v
@@ -299,8 +359,8 @@ func (t *FML) GetNodeList(key string) (list []*FML, err error) {
 	return
 }
 
-func (t *FML) getRawVal(key string) (val interface{}, err error) {
-	fKey, doc, err := getFinalKeyAndNode(key, t)
+func (f *FML) getRawVal(key string) (val interface{}, err error) {
+	fKey, doc, err := getFinalKeyAndNode(key, f)
 	//fmt.Println("getRawVal:fkey:",fKey,"doc:",doc,",err:",err)
 	if err != nil {
 		return
@@ -348,63 +408,30 @@ func getFinalKeyAndNode(key string, doc *FML) (finalKey string, finalToml *FML, 
 	return
 }
 
-/*
-func (t toml) getStruct(key string, st interface {}) ( err error) {
-	switch doc := t.dict[key].(type){
-	case *toml:
-		v := reflect.ValueOf(st).Elem()
-		tp := v.Type()
-		for i:=0; i< v.NumField(); i++ {
-			f := v.Field(i)
-			name := tp.Field(i).Name
-			switch f.Type() {
-			case reflect.String:
-				s, e := doc.GetString(name)
-				if e != nil {
-					f.SetString(s)
-				}
-				case reflect.Int
-
-
-			}
-		}
-
-		for key := range doc.dict {
-			v.FieldByName(key) = doc[key] //by type recursive
-		}
-	case nil:
-		err = errValueNotFound
-	default:
-		err = errTypeMismatch
-	}
-	return
-}
-*/
-
-func (t *FML) SetValue(key string, v interface{}) {
-	t.dict[key] = v
+func (f *FML) SetValue(key string, v interface{}) {
+	f.dict[key] = v
 }
 
-func (t *FML) RemoveItem(key string) {
-	delete(t.dict, key)
+func (f *FML) RemoveItem(key string) {
+	delete(f.dict, key)
 }
 
-func (t *FML) ValueSet() (values []interface{}) {
-	values = make([]interface{}, len(t.dict))
+func (f *FML) ValueSet() (values []interface{}) {
+	values = make([]interface{}, len(f.dict))
 
 	idx := 0
-	for _, v := range t.dict {
+	for _, v := range f.dict {
 		values[idx] = v
 		idx++
 	}
 	return
 }
 
-func (t *FML) KeySet() (keys []string) {
-	keys = make([]string, len(t.dict))
+func (f *FML) KeySet() (keys []string) {
+	keys = make([]string, len(f.dict))
 
 	idx := 0
-	for k := range t.dict {
+	for k := range f.dict {
 		keys[idx] = k
 		idx++
 	}
@@ -416,7 +443,7 @@ func (t *Toml) SetTable(key string, v *Toml) {
 
 }*/
 
-func (doc *FML) WriteToFile(path string) (err error) {
+func (f *FML) WriteToFile(path string) (err error) {
 	file, err := os.Create(path)
 	defer file.Close()
 
@@ -425,7 +452,7 @@ func (doc *FML) WriteToFile(path string) (err error) {
 	}
 
 	writer := bufio.NewWriter(file)
-	doc.WriteTo(writer)
+	f.WriteTo(writer)
 	err = writer.Flush()
 	return
 }

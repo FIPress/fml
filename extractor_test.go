@@ -118,7 +118,7 @@ func TestExtractKeyValue(t *testing.T) {
 	input := "name:Tony"
 	doc := NewFml()
 	idx := extractKeyValue([]byte(input), doc)
-	if doc.GetString("name", "") != "Tony" || idx != len(input) {
+	if doc.GetString("name") != "Tony" || idx != len(input) {
 		t.Error("Should get key value,idx:", idx, "len:", len(input))
 	}
 
@@ -134,8 +134,8 @@ func TestExtractNode(t *testing.T) {
 	if err != nil {
 		t.Error("Extract node error:", err)
 	}
-	host := db.GetString("host", "")
-	port := db.GetInt("port", 0)
+	host := db.GetString("host")
+	port := db.GetInt("port")
 	if host != "local" || port != 1433 {
 		t.Error("Should get host and port, host:", host, "port:", port)
 	}
@@ -163,8 +163,8 @@ func TestExtractNodeOfList(t *testing.T) {
 	if err != nil {
 		t.Error("Should get node list, err:", err)
 	}
-	if len(staff) != 2 || staff[0].GetString("name", "") != "Abby" ||
-		staff[1].GetInt("age", 0) != 13 {
+	if len(staff) != 2 || staff[0].GetString("name") != "Abby" ||
+		staff[1].GetInt("age") != 13 {
 		t.Error("Get node list error,")
 		IterateFimlDoc(doc)
 	}

@@ -13,10 +13,27 @@ func TestGet(t *testing.T) {
 	fml.SetValue("score", 89.5)
 	fml.SetValue("passed", true)
 
-	t.Log(fml.GetString("name", "a"))
-	t.Log(fml.GetString("age", "a"))
-	t.Log(fml.GetString("score", "a"))
-	t.Log(fml.GetString("passed", "a"))
+	t.Log(fml.GetString("name"))
+	t.Log(fml.GetString("age"))
+	t.Log(fml.GetString("score"))
+	t.Log(fml.GetString("passed"))
+}
+
+func TestFML_GetStruct(t *testing.T) {
+	type Stu struct {
+		Name string
+		Age  int
+	}
+
+	fml := NewFml()
+	sub := NewFml()
+	sub.SetValue("Name", "Jimmy")
+	sub.SetValue("Age", 12)
+	fml.SetValue("Stu", sub)
+
+	s := new(Stu)
+	fml.GetStruct("Stu", s)
+	t.Log(s.Name)
 }
 
 func TestWrapVal(t *testing.T) {
