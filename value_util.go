@@ -22,6 +22,12 @@ func getBool(rawVal interface{}) (val bool, err error) {
 	switch v := rawVal.(type) {
 	case bool:
 		val = v
+	case string:
+		var ok bool
+		val, ok = evalBool(v)
+		if !ok {
+			err = errTypeMismatch
+		}
 	case nil:
 		err = errValueNotFound
 	default:
@@ -34,6 +40,12 @@ func getInt(rawVal interface{}) (val int, err error) {
 	switch v := rawVal.(type) {
 	case int:
 		val = v
+	case string:
+		var ok bool
+		val, ok = evalInt(v)
+		if !ok {
+			err = errTypeMismatch
+		}
 	case nil:
 		err = errValueNotFound
 	default:
@@ -46,6 +58,12 @@ func getFloat(rawVal interface{}) (val float64, err error) {
 	switch v := rawVal.(type) {
 	case float64:
 		val = v
+	case string:
+		var ok bool
+		val, ok = evalFloat(v)
+		if !ok {
+			err = errTypeMismatch
+		}
 	case nil:
 		err = errValueNotFound
 	default:
@@ -58,6 +76,13 @@ func getTime(rawVal interface{}) (val time.Time, err error) {
 	switch v := rawVal.(type) {
 	case time.Time:
 		val = v
+	case string:
+		var ok bool
+		val, ok = evalDatetime(v)
+		if !ok {
+			err = errTypeMismatch
+		}
+
 	case nil:
 		err = errValueNotFound
 	default:

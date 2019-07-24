@@ -176,9 +176,8 @@ func extractValue(input []byte) (val interface{}, idx int) {
 	case '[':
 		val, idx = extractArray(input)
 	default:
-		var raw string
-		raw, idx = getRawValue(input)
-		val = eval(raw)
+		//var raw string
+		val, idx = getRawValue(input)
 	}
 	return
 }
